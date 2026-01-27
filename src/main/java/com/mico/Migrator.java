@@ -5,6 +5,7 @@ import com.mico.models.Cartridge;
 import com.mico.models.Phase;
 import com.mico.repo.CartridgeRepository;
 import com.mico.repo.PhaseRepository;
+import com.mico.util.CodeMigrator;
 import com.mico.util.JavaImportScanner;
 import com.mico.util.MigrationLogger;
 
@@ -48,29 +49,37 @@ public class Migrator {
                 logger.logToMaster("  Phase " + phase.getOrder() + ": " + phase.getName());
                 logger.logToCartridgeSummary(cartridge, "Starting Phase " + phase.getOrder() + ": " + phase.getName());
 
-                String instructionTemplate = phaseRepository.getPhaseInstructions(phase);
-                String finalPrompt = preparePrompt(instructionTemplate, phase.getInputs(), cartridge);
-
-                agent.setPrompt(finalPrompt);
-
                 try {
                     Path logFile = logger.getLogFile(cartridge, phase);
                     logger.writeLogHeader(logFile, cartridge, phase);
 
-                    ProcessBuilder pb = agent.execute();
-                    Process process = logger.executeWithLogging(pb, logFile);
-                    int exitCode = process.waitFor();
+                    // Check if this is a native phase (runs Java code directly, not through AI)
+                    boolean isNativePhase = "code_migration".equals(phase.getId());
 
-                    if (exitCode != 0) {
-                        String errorMsg = "Phase failed with exit code: " + exitCode;
-                        System.err.println("    ✗ " + errorMsg);
-                        logger.logToMaster("  ✗ " + errorMsg);
-                        logger.logToCartridgeSummary(cartridge, "✗ Phase " + phase.getOrder() + " failed with exit code: " + exitCode);
+                    if (isNativePhase) {
+                        runNativePhase(cartridge, phase, logFile);
                     } else {
-                        String successMsg = "Phase completed successfully";
-                        System.out.println("    ✓ " + successMsg);
-                        logger.logToMaster("  ✓ " + successMsg);
-                        logger.logToCartridgeSummary(cartridge, "✓ Phase " + phase.getOrder() + " completed successfully");
+                        // Run through AI agent
+                        String instructionTemplate = phaseRepository.getPhaseInstructions(phase);
+                        String finalPrompt = preparePrompt(instructionTemplate, phase.getInputs(), cartridge);
+
+                        agent.setPrompt(finalPrompt);
+
+                        ProcessBuilder pb = agent.execute();
+                        Process process = logger.executeWithLogging(pb, logFile);
+                        int exitCode = process.waitFor();
+
+                        if (exitCode != 0) {
+                            String errorMsg = "Phase failed with exit code: " + exitCode;
+                            System.err.println("    ✗ " + errorMsg);
+                            logger.logToMaster("  ✗ " + errorMsg);
+                            logger.logToCartridgeSummary(cartridge, "✗ Phase " + phase.getOrder() + " failed with exit code: " + exitCode);
+                        } else {
+                            String successMsg = "Phase completed successfully";
+                            System.out.println("    ✓ " + successMsg);
+                            logger.logToMaster("  ✓ " + successMsg);
+                            logger.logToCartridgeSummary(cartridge, "✓ Phase " + phase.getOrder() + " completed successfully");
+                        }
                     }
 
                     cartridge.setCurrentPhase(phase.getId());
@@ -128,5 +137,49 @@ public class Migrator {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Runs a native phase (Java code) directly without using AI agent
+     */
+    private void runNativePhase(Cartridge cartridge, Phase phase, Path logFile) {
+        try {
+            // Redirect System.out and System.err to log file
+            var originalOut = System.out;
+            var originalErr = System.err;
+            CodeMigrator.MigrationStats stats;
+
+            try (var printStream = new java.io.PrintStream(
+                    new java.io.FileOutputStream(logFile.toFile(), true))) {
+                System.setOut(printStream);
+                System.setErr(printStream);
+
+                // Run CodeMigrator
+                CodeMigrator migrator = new CodeMigrator(cartridge.getPath());
+                migrator.migrate();
+                stats = migrator.getStats();
+
+                printStream.println("\n=== Code Migration Statistics ===");
+                printStream.println("Files processed: " + stats.filesProcessed());
+                printStream.println("Errors: " + stats.errorCount());
+                printStream.println("===================================\n");
+
+            } finally {
+                System.setOut(originalOut);
+                System.setErr(originalErr);
+            }
+
+            String successMsg = "Native phase completed: " + stats.filesProcessed() + " files";
+            System.out.println("    ✓ " + successMsg);
+            logger.logToMaster("  ✓ " + successMsg);
+            logger.logToCartridgeSummary(cartridge, "✓ Phase " + phase.getOrder() + " completed (native)");
+
+        } catch (Exception e) {
+            String errorMsg = "Native phase failed: " + e.getMessage();
+            System.err.println("    ✗ " + errorMsg);
+            logger.logToMaster("  ✗ " + errorMsg);
+            logger.logToCartridgeSummary(cartridge, "✗ Phase " + phase.getOrder() + " failed: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -18,6 +18,16 @@
       "dependencies_list" : "path/to/dependencies_list",
       "cartridge_path" : "path/to/cartridge"
     }
+  },
+  {
+    "name": "Code Migration",
+    "instructions": "Phase_3.md",
+    "id" : "code_migration",
+    "order": 3,
+    "inputs" : {
+      "cartridge_path" : "path/to/cartridge",
+      "cartridge_name" : "name of the cartridge"
+    }
   }
 
 ]
