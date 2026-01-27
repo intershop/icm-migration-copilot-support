@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Initialization Phase",
+    "instructions": "Phase_1.md",
+    "id" : "init",
+    "order" : 1,
+    "inputs" : {
+      "cartridge_path" : "path/to/cartridge",
+      "cartridge_name" : "name of the cartridge"
+    }
+  },
+  {
+    "name": "Dependency Resolution",
+    "instructions": "Phase_2.md",
+    "id" : "dep_res",
+    "order": 2,
+    "inputs" : {
+      "dependencies_list" : "path/to/dependencies_list",
+      "cartridge_path" : "path/to/cartridge"
+    }
+  }
+
+]
