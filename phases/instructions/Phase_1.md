@@ -153,8 +153,6 @@ implementation("group:artifact:1.2.3")
 
 ```kotlin
 dependencies {
-    // Project dependencies
-    cartridge(project(":xxx"))
 
     // Platform dependencies
     cartridge("com.intershop.platform:xxx")

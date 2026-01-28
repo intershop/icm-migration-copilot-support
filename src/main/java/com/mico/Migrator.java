@@ -15,18 +15,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class Migrator {
 
     private final CartridgeRepository cartridgeRepository;
     private final PhaseRepository phaseRepository;
-    private final Agent agent;
+    private final Supplier<Agent> agentFactory;
     private final MigrationLogger logger;
 
-    public Migrator(CartridgeRepository cartridgeRepository, PhaseRepository phaseRepository, Agent agent) {
+    public Migrator(CartridgeRepository cartridgeRepository, PhaseRepository phaseRepository, Supplier<Agent> agentFactory) {
         this.cartridgeRepository = cartridgeRepository;
         this.phaseRepository = phaseRepository;
-        this.agent = agent;
+        this.agentFactory = agentFactory;
         this.logger = new MigrationLogger();
     }
 
@@ -53,13 +54,12 @@ public class Migrator {
                     Path logFile = logger.getLogFile(cartridge, phase);
                     logger.writeLogHeader(logFile, cartridge, phase);
 
-                    // Check if this is a native phase (runs Java code directly, not through AI)
                     boolean isNativePhase = "code_migration".equals(phase.getId());
 
                     if (isNativePhase) {
                         runNativePhase(cartridge, phase, logFile);
                     } else {
-                        // Run through AI agent
+                        Agent agent = agentFactory.get();
                         String instructionTemplate = phaseRepository.getPhaseInstructions(phase);
                         String finalPrompt = preparePrompt(instructionTemplate, phase.getInputs(), cartridge);
 
@@ -114,7 +114,6 @@ public class Migrator {
             String value = getInputValue(input.getKey(), cartridge);
             result = result.replace(placeholder, value);
         }
-
         return result;
     }
 
@@ -127,8 +126,9 @@ public class Migrator {
         };
     }
 
+
     private String generateDependenciesList(Cartridge cartridge) {
-        Set<String> exclusions = Set.of("com.intershop.");
+        Set<String> exclusions = Set.of();
         LinkedList<String> imports = JavaImportScanner.scanImports(cartridge, exclusions);
 
         StringBuilder sb = new StringBuilder();

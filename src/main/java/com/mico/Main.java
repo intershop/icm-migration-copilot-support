@@ -51,15 +51,22 @@ public class Main {
             System.exit(1);
         }
 
-        // Create the agent
-        Agent agent = switch (agentType) {
-            case COPILOT -> new CopilotAgent(new File(path));
-            case CLAUDE_CODE -> new ClaudeCodeAgent(new File(path));
-        };
+        // Create effectively final variables for lambda
+        final String finalPath = path;
+        final String finalModel = model;
+        final AgentType finalAgentType = agentType;
 
-        agent.setModel(model);
-        agent.allowAllTools();
-        agent.setDirectory(path);
+        // Create agent factory - creates a FRESH agent for each phase
+        java.util.function.Supplier<Agent> agentFactory = () -> {
+            Agent agent = switch (finalAgentType) {
+                case COPILOT -> new CopilotAgent(new File(finalPath));
+                case CLAUDE_CODE -> new ClaudeCodeAgent(new File(finalPath));
+            };
+            agent.setModel(finalModel);
+            agent.allowAllTools();
+            agent.setDirectory(finalPath);
+            return agent;
+        };
 
         // Initialize repositories
         CartridgeRepository cartridgeRepository = new CartridgeRepository(path, isSingleCartridge);
@@ -69,7 +76,7 @@ public class Main {
         );
 
         // Create and run migrator
-        Migrator migrator = new Migrator(cartridgeRepository, phaseRepository, agent);
+        Migrator migrator = new Migrator(cartridgeRepository, phaseRepository, agentFactory);
         migrator.migrate();
     }
 }
