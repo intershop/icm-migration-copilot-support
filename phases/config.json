@@ -28,6 +28,17 @@
       "cartridge_path" : "path/to/cartridge",
       "cartridge_name" : "name of the cartridge"
     }
+  },
+  {
+    "name": "Code Fix",
+    "instructions": "Phase_4.md",
+    "id" : "code_fixing",
+    "order": 4,
+    "inputs" : {
+      "java_classes_list" : "list of all java classes to be checked",
+      "cartridge_path" : "path/to/cartridge",
+      "cartridge_name" : "name of the cartridge"
+    }
   }
 
 ]

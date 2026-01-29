@@ -122,10 +122,28 @@ public class Migrator {
             case "cartridge_path" -> cartridge.getPath();
             case "cartridge_name" -> cartridge.getName();
             case "dependencies_list" -> generateDependenciesList(cartridge);
+            case "java_classes_list" -> generateJavaClassesList(cartridge);
             default -> "";
         };
     }
 
+    private String generateJavaClassesList(Cartridge cartridge) {
+        java.nio.file.Path cartridgePath = java.nio.file.Paths.get(cartridge.getPath());
+        StringBuilder sb = new StringBuilder();
+
+        try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.walk(cartridgePath)) {
+            paths.filter(java.nio.file.Files::isRegularFile)
+                 .filter(p -> p.toString().endsWith(".java"))
+                 .forEach(p -> {
+                     String relativePath = cartridgePath.relativize(p).toString();
+                     sb.append(relativePath).append("\n");
+                 });
+        } catch (IOException e) {
+            System.err.println("Error scanning Java files: " + e.getMessage());
+        }
+
+        return sb.toString();
+    }
 
     private String generateDependenciesList(Cartridge cartridge) {
         Set<String> exclusions = Set.of();
