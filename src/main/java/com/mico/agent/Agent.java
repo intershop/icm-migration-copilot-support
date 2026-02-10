@@ -1,9 +1,5 @@
 package com.mico.agent;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 public interface Agent {
 
     String getExecutionCommand();
@@ -12,4 +8,8 @@ public interface Agent {
     Agent allowAllTools();
     Agent setPrompt(String text);
     public ProcessBuilder execute();
+
+    default void postExecution(Process process) throws java.io.IOException {
+        // Default implementation does nothing
+    }
 }

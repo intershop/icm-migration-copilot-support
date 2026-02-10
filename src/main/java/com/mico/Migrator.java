@@ -1,5 +1,12 @@
 package com.mico;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+
 import com.mico.agent.Agent;
 import com.mico.models.Cartridge;
 import com.mico.models.Phase;
@@ -8,14 +15,6 @@ import com.mico.repo.PhaseRepository;
 import com.mico.util.CodeMigrator;
 import com.mico.util.JavaImportScanner;
 import com.mico.util.MigrationLogger;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
 
 public class Migrator {
 
@@ -67,6 +66,9 @@ public class Migrator {
 
                         ProcessBuilder pb = agent.execute();
                         Process process = logger.executeWithLogging(pb, logFile);
+                        
+                        agent.postExecution(process);
+                        
                         int exitCode = process.waitFor();
 
                         if (exitCode != 0) {
@@ -147,7 +149,7 @@ public class Migrator {
 
     private String generateDependenciesList(Cartridge cartridge) {
         Set<String> exclusions = Set.of();
-        LinkedList<String> imports = JavaImportScanner.scanImports(cartridge, exclusions);
+        Set<String> imports = JavaImportScanner.scanImports(cartridge, exclusions);
 
         StringBuilder sb = new StringBuilder();
         for (String importStatement : imports) {

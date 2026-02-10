@@ -1,18 +1,17 @@
 package com.mico.util;
 
 
-import com.mico.models.Cartridge;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import com.mico.models.Cartridge;
 
 public class JavaImportScanner {
 
@@ -23,9 +22,9 @@ public class JavaImportScanner {
      * No filtering is applied by default.
      *
      * @param cartridge the cartridge to scan
-     * @return a linked list of unique import statements
+     * @return a set of unique import statements
      */
-    public static LinkedList<String> scanImports(Cartridge cartridge) {
+    public static Set<String> scanImports(Cartridge cartridge) {
         return scanImports(cartridge, Collections.emptySet());
     }
 
@@ -35,13 +34,12 @@ public class JavaImportScanner {
      *
      * @param cartridge the cartridge to scan
      * @param exclusionPrefixes a set of package prefixes to exclude (e.g., "com.intershop.", "java.lang.")
-     * @return a linked list of unique import statements (excluding those matching the prefixes)
+     * @return a set of unique import statements (excluding those matching the prefixes)
      */
-    public static LinkedList<String> scanImports(Cartridge cartridge, Set<String> exclusionPrefixes) {
-        Set<String> importSet = new LinkedHashSet<>();
+    public static Set<String> scanImports(Cartridge cartridge, Set<String> exclusionPrefixes) {
+        Set<String> importSet = new HashSet<>();
         Path cartridgePath = Path.of(cartridge.getPath());
         int fileCount = 0;
-
         try (Stream<Path> paths = Files.walk(cartridgePath)) {
             for (Path javaFile : (Iterable<Path>) paths
                     .filter(Files::isRegularFile)
@@ -58,7 +56,7 @@ public class JavaImportScanner {
         }
 
         System.out.println("Scanned " + fileCount + " Java files, found " + importSet.size() + " unique imports");
-        return new LinkedList<>(importSet);
+        return importSet;
     }
 
     /**

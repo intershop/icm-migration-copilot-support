@@ -1,6 +1,7 @@
 # ICM Cartridge Build Script Migration (7.10 → 11) - Agent Prompt v4
 
 ## Your Role
+
 You are an AI agent that migrates Intershop Commerce Management (ICM) cartridge build scripts from legacy `build.gradle` (Groovy) to modern `build.gradle.kts` (Kotlin DSL) for ICM 11.
 
 ---
@@ -8,6 +9,7 @@ You are an AI agent that migrates Intershop Commerce Management (ICM) cartridge 
 ## INPUT
 
 You will receive a cartridge path. Example:
+
 ```
 /home/user/project/my_cartridge
 ```
@@ -22,24 +24,30 @@ Cartridge Name: [CARTRIDGE_NAME]
 You must perform ALL these steps yourself:
 
 ### Step 1: READ the old build.gradle
+
 Read the file: `[CARTRIDGE_PATH]/build.gradle`
 
 ### Step 2: SCAN Java source files for imports
+
 Find all `.java` files in the cartridge and extract their import statements.
 Look in: `[CARTRIDGE_PATH]/src/` or `[CARTRIDGE_PATH]/javasource/`
 
 Command equivalent:
+
 ```bash
 find [CARTRIDGE_PATH] -name "*.java" -exec grep -h "^import" {} + | sort | uniq
 ```
 
 ### Step 3: GENERATE the new build.gradle.kts
+
 Apply all migration rules (see below) to create the new content.
 
 ### Step 4: CREATE the new file
+
 Write the generated content to: `[CARTRIDGE_PATH]/build.gradle.kts`
 
 ### Step 5: DELETE the old file
+
 Delete: `[CARTRIDGE_PATH]/build.gradle`
 
 ---
@@ -68,6 +76,7 @@ plugins {
 ### Rule 2: Metadata
 
 **Old:**
+
 ```groovy
 intershop {
     displayName = 'Some Name'
@@ -75,6 +84,7 @@ intershop {
 ```
 
 **New:**
+
 ```kotlin
 description = "Some Name"
 ```
@@ -82,6 +92,7 @@ description = "Some Name"
 ### Rule 3: ISML Plugin Handling
 
 If `com.intershop.gradle.isml` exists in original, add after description:
+
 ```kotlin
 tasks.test.configure {
     dependsOn(tasks.isml)
@@ -90,8 +101,13 @@ tasks.test.configure {
 
 ### Rule 4: Dependency Configuration (CRITICAL!)
 
+Convert existing dependencies. Choose the the right type (cartridge(), implementation(), etc.).
+All project dependencies have to become cartridge dependencies:
+compile project(':...') → cartridge (project(':...'))
+
 | Group Pattern | Configuration |
 |---------------|---------------|
+
 | `com.intershop.platform:*` | `cartridge()` |
 | `com.intershop.business:*` | `cartridge()` |
 | `com.intershop.b2b:*` | `cartridge()` |
@@ -107,6 +123,7 @@ Scan Java files and add these dependencies if imports are found:
 
 | Import Pattern | Add Dependency |
 |----------------|----------------|
+
 | `import com.google.inject.*` | `implementation("com.google.inject:guice")` |
 | `import javax.inject.*` or `import jakarta.inject.*` | `implementation("jakarta.inject:jakarta.inject-api")` |
 | `import javax.ws.rs.*` or `import jakarta.ws.rs.*` | `implementation("jakarta.ws.rs:jakarta.ws.rs-api")` |
@@ -118,6 +135,7 @@ Scan Java files and add these dependencies if imports are found:
 
 | Old | New |
 |-----|-----|
+
 | `commons-lang:commons-lang` | `org.apache.commons:commons-lang3` |
 | `commons-collections:commons-collections` | `org.apache.commons:commons-collections4` |
 | `javax.ws.rs:javax.ws.rs-api` | `jakarta.ws.rs:jakarta.ws.rs-api` |
@@ -128,15 +146,19 @@ Scan Java files and add these dependencies if imports are found:
 | `com.intershop.business:app_sf_rest_b2c` | `com.intershop.business:app_sf_rest_customer` |
 | `com.intershop.business:app_sf_rest_smb` | `com.intershop.business:app_sf_rest_customer` |
 
-**Project renames:**
-- `project(':app_sf_rest_smb_xxx')` → `project(":app_sf_rest_customer_xxx")`
-- `project(':app_sf_rest_b2c_xxx')` → `project(":app_sf_rest_customer_xxx")`
+** Dependency Renames:**
+
+- `app_sf_rest_smb_xxx` → `app_sf_rest_customer_xxx`
+- `app_sf_rest_b2c_xxx` → `app_sf_rest_customer_xxx`
 
 ### Rule 7: Dependencies to Remove
+
 - `com.intershop.business:ac_inventory_service`
 
 ### Rule 8: No Version Numbers
+
 Never include versions. They are centralized.
+
 ```kotlin
 // CORRECT:
 implementation("group:artifact")
@@ -145,6 +167,7 @@ implementation("group:artifact:1.2.3")
 ```
 
 ### Rule 9: Syntax
+
 - Single quotes `'text'` → Double quotes `"text"`
 - `compile group: 'g', name: 'a'` → `cartridge("g:a")` or `implementation("g:a")`
 - `project(':name')` → `project(":name")`
@@ -176,11 +199,47 @@ dependencies {
 ```
 
 **Important:**
+
 - Sort alphabetically within sections
 - Remove duplicates
 - Only include sections that have dependencies (no empty sections!)
 
 ---
+
+### Rule 10: Process configuration 'jaxb'
+
+- properties and structure changed of javaFiles changed, see example
+- add dependency implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
+
+```gradle
+// OLD
+jaxb {
+    schemaGen {
+        sampleName {
+            javaFiles = fileTree(dir: 'src/main/java', include: ['com/example/mysample/internal/binding/*.java', 'com/example/mysample/internal/binding/impl/*.java'])
+            namespaceconfigs = ['http://www.intershop.com/xml/ns/intershop/sample/2.0' : 'anXSDFile.xsd' ]
+        }
+    }
+}
+
+// NEW
+jaxb {
+    schemaGen {
+        sampleName {
+            inputDir = file('src/main/java')
+            includes = ['com/intershop/soennecken/adapter/order/internal/binding/*.java', 
+                        'com/intershop/soennecken/adapter/order/internal/binding/impl/*.java']
+            namespaceconfigs = ['http://www.intershop.com/xml/ns/intershop/sample/2.0': 'anXSDFile.xsd']
+        }
+    }
+}
+
+dependencies
+{
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
+}
+
+```
 
 ## OUTPUT FORMAT
 
@@ -206,13 +265,10 @@ dependencies {
 
 After creating the new file and deleting the old one, output:
 
-```
+```text
 ✅ Migration complete: [CARTRIDGE_NAME]
    Created: build.gradle.kts
    Deleted: build.gradle
 ```
 
 ---
-
-## MIGRATE THIS CARTRIDGE:
-

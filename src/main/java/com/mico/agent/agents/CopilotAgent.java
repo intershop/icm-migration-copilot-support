@@ -1,52 +1,23 @@
 package com.mico.agent.agents;
 
-import com.mico.agent.Agent;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import com.mico.agent.Agent;
+import com.mico.agent.BaseAgent;
 
-public class CopilotAgent implements Agent {
-
-    private final List<String> command = new ArrayList<>();
-    private String executionCommand = null;
-    private final File workingDirectory;
-    private String model = null;
+public class CopilotAgent extends BaseAgent {
 
     public CopilotAgent(File workingDirectory) {
-        this.workingDirectory = workingDirectory;
-        command.add("copilot");
+        super(workingDirectory);
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            command.add("copilot.bat");
+        } else {
+            command.add("copilot");
+        }
     }
-
-    @Override
-    public String getExecutionCommand() {
-        return executionCommand;
-    }
-
-    @Override
-    public Agent setModel(String model) {
-        this.model = model;
-        return this;
-    }
-
-    @Override
-    public Agent setDirectory(String directory) {
-        command.add("--add-dir");
-        command.add(directory);
-        return this;
-    }
-
 
     @Override
     public Agent allowAllTools() {
         command.add("--allow-all-tools");
-        return this;
-    }
-
-    @Override
-    public Agent setPrompt(String text) {
-        command.add("--prompt");
-        command.add(text);
         return this;
     }
 
@@ -57,7 +28,7 @@ public class CopilotAgent implements Agent {
         }
         command.add("--model");
         command.add(model);
-        ProcessBuilder pb = new ProcessBuilder(command).inheritIO();
+        ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(workingDirectory);
         executionCommand = pb.command().toString();
         return pb;

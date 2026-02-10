@@ -1,38 +1,18 @@
 package com.mico.agent.agents;
 
-import com.mico.agent.Agent;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import com.mico.agent.Agent;
+import com.mico.agent.BaseAgent;
 
-public class ClaudeCodeAgent implements Agent {
-    private final List<String> command = new ArrayList<>();
-    private String executionCommand = null;
-    private final File workingDirectory;
-    private String model = null;
+public class ClaudeCodeAgent extends BaseAgent {
 
     public ClaudeCodeAgent(File workingDirectory) {
-        this.workingDirectory = workingDirectory;
-        command.add("claude");
-    }
-
-    @Override
-    public String getExecutionCommand() {
-        return executionCommand;
-    }
-
-    @Override
-    public Agent setModel(String model) {
-        this.model = model;
-        return this;
-    }
-
-    @Override
-    public Agent setDirectory(String directory) {
-        command.add("--add-dir");
-        command.add(directory);
-        return this;
+        super(workingDirectory);
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            command.add("claude.cmd");
+        } else {
+            command.add("claude");
+        }
     }
 
     @Override
@@ -42,19 +22,13 @@ public class ClaudeCodeAgent implements Agent {
     }
 
     @Override
-    public Agent setPrompt(String text) {
-        command.add("-p");
-        command.add(text);
-        return this;
-    }
-
-    @Override
     public ProcessBuilder execute() {
         if (model != null && !model.isEmpty()) {
             command.add("--model");
             command.add(model);
         }
-        ProcessBuilder pb = new ProcessBuilder(command).inheritIO();
+        // Removed inheritIO() to allow BaseAgent to write prompt to stdin
+        ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(workingDirectory);
         executionCommand = pb.command().toString();
         return pb;

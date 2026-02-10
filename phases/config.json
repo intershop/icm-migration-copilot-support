@@ -1,8 +1,8 @@
 [
   {
-    "name": "Initialization Phase",
+    "name": "Gradle Build File Migration",
     "instructions": "Phase_1.md",
-    "id" : "init",
+    "id" : "gradle_build_migration",
     "order" : 1,
     "inputs" : {
       "cartridge_path" : "path/to/cartridge",
@@ -39,6 +39,15 @@
       "cartridge_path" : "path/to/cartridge",
       "cartridge_name" : "name of the cartridge"
     }
+  },
+  {
+    "name": "Resource Processing",
+    "instructions": "Phase_5.md",
+    "id" : "resource_processing",
+    "order": 5,
+    "inputs" : {
+      "cartridge_path" : "path/to/cartridge",
+      "cartridge_name" : "name of the cartridge"
+    }
   }
-
 ]
