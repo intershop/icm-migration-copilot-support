@@ -18,10 +18,12 @@ You are an AI agent that migrates files and folders using former locations to ne
 
 ## Workflow
 
-### Step 1: Move cartridge descriptor and cartridge resources like pipelines, queries
+### Step 1: Move cartridge descriptor and cartridge resources like pipelines, queries, templates, or other
 
 - if exists, move file `staticfiles/share/system/config/cartridges/[CARTRIDGE_NAME].properties` to `src/main/resources/cartridges/[CARTRIDGE_NAME].properties
-- move all files and folders recursively in `staticfiles/cartridge/*` to `src/main/resources/resources/[CARTRIDGE_NAME]/*`.
+- if exists, move all files and folders recursively in `edl/*` `src/main/resources/resources/[CARTRIDGE_NAME]/*`.
+- if exists, move all files and folders recursively in `staticfiles/cartridge/templates/*` to `src/main/[CARTRIDGE_NAME]/*`
+- if exists, move all files and folders recursively in `staticfiles/cartridge/*` to `src/main/resources/resources/[CARTRIDGE_NAME]/*`.
 
 Examples
 
@@ -32,8 +34,25 @@ Examples
 | `staticfiles/cartridge/dbinit.properties` | `src/main/resources/resources/[CARTRIDGE_NAME]/dbinit.properties` |
 | `staticfiles/cartridge/migration.properties` | `src/main/resources/resources/[CARTRIDGE_NAME]/migration.properties` |
 | `staticfiles/cartridge/migration.properties` | `src/main/resources/resources/[CARTRIDGE_NAME]/migration.properties` |
-| `staticfiles/cartridge/cartridge/pipelines/Pipeline.pipeline` | `src/main/resources/resources/[CARTRIDGE_NAME]/pipelines/APipeline.pipeline` |
-| `staticfiles/cartridge/cartridge/queries/Query.pipeline` | `src/main/resources/resources/[CARTRIDGE_NAME]/queries/Query.pipeline` |
+| `staticfiles/cartridge/pipelines/Pipeline.pipeline` | `src/main/resources/resources/[CARTRIDGE_NAME]/pipelines/APipeline.pipeline` |
+| `staticfiles/cartridge/queries/Query.pipeline` | `src/main/resources/resources/[CARTRIDGE_NAME]/queries/Query.pipeline` |
+| `staticfiles/cartridge/templates/default/t1.isml` | `src/main/isml/[CARTRIDGE_NAME]/default/t1.isml` |
+| `edl/com/test/MyType.edl` | `src/main/resources/resources/[CARTRIDGE_NAME]/edl/com/test/MyType.edl` |
+
+**Additional step for templates** If at least one template existed in `staticfiles/cartridge/templates/` modify the build file `build.gradle.kts`:
+
+- Plugin "java" and "com.intershop.gradle.isml" have to be present
+
+```kotlin
+plugins {
+    java
+    // ..
+    id("com.intershop.gradle.isml")
+    // ..
+}
+```
+
+After this step, folder `staticfiles/cartridge` should be empty. If the whole folder `staticfiles` is empty or only contains empty folders, it has to be removed.
 
 ### Step 2: Move site files and apply preparation steps
 
@@ -63,6 +82,7 @@ Files processed: [NUMBER]
 Files modified: [NUMBER]
 Sites register: [NUMBER]
 Files created: [NUMBER]
+Templates moved: [NUMBER]
 
 Status: ✅ Cartridge ready to build
 ```
