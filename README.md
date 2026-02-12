@@ -139,14 +139,16 @@ MiCo/
 │   └── instructions/
 │       ├── Phase_1.md              # Phase instruction files
 │       ├── Phase_2.md
-│       └── Phase_3.md
+│       ├── Phase_3.md
+│       ├── Phase_4.md
+│       └── Phase_5.md
 ├── logs/                           # Generated logs (gitignored)
 │   └── session_YYYY-MM-DD_HH-mm-ss/
 │       ├── SUMMARY.txt
 │       ├── migration_master.log
 │       └── cartridge_logs...
 ├── src/
-│   └── main/java/com/mico/
+│   └── main/java/com/intershop/mico/
 │       ├── Main.java               # Entry point
 │       ├── Migrator.java           # Migration orchestrator
 │       ├── agent/                  # AI agent implementations
