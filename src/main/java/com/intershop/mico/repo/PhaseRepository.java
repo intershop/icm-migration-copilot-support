@@ -1,8 +1,8 @@
-package com.mico.repo;
+package com.intershop.mico.repo;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.mico.models.Phase;
+import com.intershop.mico.models.Phase;
 
 import java.io.IOException;
 import java.lang.reflect.Type;

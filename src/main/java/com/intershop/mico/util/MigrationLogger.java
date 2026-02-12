@@ -1,7 +1,7 @@
-package com.mico.util;
+package com.intershop.mico.util;
 
-import com.mico.models.Cartridge;
-import com.mico.models.Phase;
+import com.intershop.mico.models.Cartridge;
+import com.intershop.mico.models.Phase;
 
 import java.io.*;
 import java.nio.file.Files;

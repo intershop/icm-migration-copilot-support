@@ -1,4 +1,4 @@
-package com.mico;
+package com.intershop.mico;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -7,14 +7,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import com.mico.agent.Agent;
-import com.mico.models.Cartridge;
-import com.mico.models.Phase;
-import com.mico.repo.CartridgeRepository;
-import com.mico.repo.PhaseRepository;
-import com.mico.util.CodeMigrator;
-import com.mico.util.JavaImportScanner;
-import com.mico.util.MigrationLogger;
+import com.intershop.mico.agent.Agent;
+import com.intershop.mico.models.Cartridge;
+import com.intershop.mico.models.Phase;
+import com.intershop.mico.repo.CartridgeRepository;
+import com.intershop.mico.repo.PhaseRepository;
+import com.intershop.mico.util.CodeMigrator;
+import com.intershop.mico.util.JavaImportScanner;
+import com.intershop.mico.util.MigrationLogger;
 
 public class Migrator {
 

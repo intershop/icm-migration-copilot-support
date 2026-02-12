@@ -1,4 +1,4 @@
-package com.mico.models;
+package com.intershop.mico.models;
 
 public class Cartridge {
 

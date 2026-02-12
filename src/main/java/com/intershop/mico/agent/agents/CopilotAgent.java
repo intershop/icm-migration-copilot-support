@@ -1,8 +1,9 @@
-package com.mico.agent.agents;
+package com.intershop.mico.agent.agents;
 
 import java.io.File;
-import com.mico.agent.Agent;
-import com.mico.agent.BaseAgent;
+
+import com.intershop.mico.agent.Agent;
+import com.intershop.mico.agent.BaseAgent;
 
 public class CopilotAgent extends BaseAgent {
 

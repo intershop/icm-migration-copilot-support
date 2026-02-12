@@ -1,11 +1,11 @@
-package com.mico;
+package com.intershop.mico;
 
-import com.mico.agent.Agent;
-import com.mico.agent.agents.AgentType;
-import com.mico.agent.agents.CopilotAgent;
-import com.mico.agent.agents.ClaudeCodeAgent;
-import com.mico.repo.CartridgeRepository;
-import com.mico.repo.PhaseRepository;
+import com.intershop.mico.agent.Agent;
+import com.intershop.mico.agent.agents.AgentType;
+import com.intershop.mico.agent.agents.CopilotAgent;
+import com.intershop.mico.agent.agents.ClaudeCodeAgent;
+import com.intershop.mico.repo.CartridgeRepository;
+import com.intershop.mico.repo.PhaseRepository;
 
 import java.io.File;
 import java.nio.file.Paths;

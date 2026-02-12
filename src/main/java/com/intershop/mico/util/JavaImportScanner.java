@@ -1,4 +1,4 @@
-package com.mico.util;
+package com.intershop.mico.util;
 
 
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import com.mico.models.Cartridge;
+import com.intershop.mico.models.Cartridge;
 
 public class JavaImportScanner {
 

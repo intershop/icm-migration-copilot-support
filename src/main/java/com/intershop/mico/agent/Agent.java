@@ -1,4 +1,4 @@
-package com.mico.agent;
+package com.intershop.mico.agent;
 
 public interface Agent {
 

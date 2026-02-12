@@ -1,4 +1,4 @@
-package com.mico.agent;
+package com.intershop.mico.agent;
 
 import java.io.BufferedWriter;
 import java.io.File;

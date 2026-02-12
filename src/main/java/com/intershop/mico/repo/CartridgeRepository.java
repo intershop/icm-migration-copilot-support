@@ -1,6 +1,6 @@
-package com.mico.repo;
+package com.intershop.mico.repo;
 
-import com.mico.models.Cartridge;
+import com.intershop.mico.models.Cartridge;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

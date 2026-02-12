@@ -3,11 +3,11 @@ plugins {
     id("application")
 }
 
-group = "com.mico"
+group = "com.intershop.mico"
 version = "1.0-SNAPSHOT"
 
 application{
-    mainClass = "com.mico.Main"
+    mainClass = "com.intershop.mico.Main"
 }
 
 repositories {
