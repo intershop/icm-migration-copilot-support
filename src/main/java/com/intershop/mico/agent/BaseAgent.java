@@ -15,6 +15,7 @@ public abstract class BaseAgent implements Agent {
     protected String model;
     protected String promptText;
     protected String executionCommand;
+    protected String phaseId;
 
     public BaseAgent(File workingDirectory) {
         this.workingDirectory = workingDirectory;
@@ -41,6 +42,12 @@ public abstract class BaseAgent implements Agent {
     @Override
     public Agent setPrompt(String text) {
         this.promptText = text;
+        return this;
+    }
+
+    @Override
+    public Agent setPhaseId(String phaseId) {
+        this.phaseId = phaseId;
         return this;
     }
     

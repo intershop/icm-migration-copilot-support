@@ -7,6 +7,7 @@ public interface Agent {
     Agent setDirectory(String directory);
     Agent allowAllTools();
     Agent setPrompt(String text);
+    Agent setPhaseId(String phaseId);
     public ProcessBuilder execute();
 
     default void postExecution(Process process) throws java.io.IOException {

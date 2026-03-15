@@ -63,6 +63,7 @@ public class Migrator {
                         String finalPrompt = preparePrompt(instructionTemplate, phase.getInputs(), cartridge);
 
                         agent.setPrompt(finalPrompt);
+                        agent.setPhaseId(phase.getId());
 
                         ProcessBuilder pb = agent.execute();
                         Process process = logger.executeWithLogging(pb, logFile);
