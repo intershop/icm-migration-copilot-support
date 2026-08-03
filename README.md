@@ -93,6 +93,16 @@ Use placeholders in instruction files:
 - `[CARTRIDGE_NAME]` - Replaced with cartridge name
 - `[DEPENDENCIES_LIST]` - Auto-generated list of Java imports
 
+## Two Ways to Run
+
+| Mode              | Best for                                                    | Entry point          |
+|-------------------|-------------------------------------------------------------|----------------------|
+| **CLI (default)** | Unattended batch migration of many cartridges               | This README          |
+| **AI skill**      | Interactive, single-cartridge migration in your IDE / agent | [SKILL.md](SKILL.md) |
+
+Both share one source of truth — the phase instruction files under
+[`phases/instructions/`](phases/instructions).
+
 ## Usage
 
 ### Basic Command
@@ -395,6 +405,9 @@ For issues, questions, or contributions:
 - Create an issue in the repository
 
 ## Changelog
+
+### Version 1.1.0
+- Added agent skill `SKILL.md` as alternative way to run MiCo
 
 ### Version 1.0.0
 - Initial release
