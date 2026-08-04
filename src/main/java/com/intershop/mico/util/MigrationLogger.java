@@ -2,13 +2,16 @@ package com.intershop.mico.util;
 
 import com.intershop.mico.models.Cartridge;
 import com.intershop.mico.models.Phase;
+import com.intershop.mico.util.BuildVerifier.Status;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 public class MigrationLogger {
     private static final Path LOGS_DIR = Paths.get("logs");
@@ -63,9 +66,6 @@ public class MigrationLogger {
         // Create log file parent directories if needed
         Files.createDirectories(logFile.getParent());
 
-        // Create the log file writer
-        FileOutputStream logStream = new FileOutputStream(logFile.toFile());
-
         // Instead of inheritIO, we'll redirect to the log file
         pb.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
         pb.redirectError(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
@@ -100,8 +100,8 @@ public class MigrationLogger {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")),
                 message);
             Files.writeString(masterLog, timestampedMessage,
-                java.nio.file.StandardOpenOption.CREATE,
-                java.nio.file.StandardOpenOption.APPEND);
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND);
         } catch (IOException e) {
             System.err.println("Failed to write to master log: " + e.getMessage());
         }
@@ -117,8 +117,8 @@ public class MigrationLogger {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")),
                 message);
             Files.writeString(summaryLog, timestampedMessage,
-                java.nio.file.StandardOpenOption.CREATE,
-                java.nio.file.StandardOpenOption.APPEND);
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND);
         } catch (IOException e) {
             System.err.println("Failed to write to cartridge summary log: " + e.getMessage());
         }
@@ -145,7 +145,8 @@ public class MigrationLogger {
     /**
      * Creates a summary report at the end of migration
      */
-    public void createSummaryReport(int totalCartridges, int totalPhases, long durationMillis) {
+    public void createSummaryReport(int totalCartridges, int totalPhases, long durationMillis,
+                                    Map<String, Status> buildResults) {
         try {
             Path summaryFile = sessionLogDir.resolve("SUMMARY.txt");
             try (BufferedWriter writer = Files.newBufferedWriter(summaryFile)) {
@@ -158,6 +159,25 @@ public class MigrationLogger {
                 writer.write("Duration: " + formatDuration(durationMillis) + "\n");
                 writer.write("Completed: " + LocalDateTime.now() + "\n");
                 writer.write("=".repeat(80) + "\n");
+
+                if (buildResults != null && !buildResults.isEmpty()) {
+                    long passed = buildResults.values().stream()
+                        .filter(s -> s == Status.PASSED).count();
+                    long failed = buildResults.values().stream()
+                        .filter(s -> s == Status.FAILED).count();
+                    long skipped = buildResults.values().stream()
+                        .filter(s -> s == Status.SKIPPED).count();
+
+                    writer.write("\nBUILD VERIFICATION RESULTS\n");
+                    writer.write("-".repeat(80) + "\n");
+                    writer.write(String.format("Passed: %d   Failed: %d   Skipped: %d%n", passed, failed, skipped));
+                    writer.write("-".repeat(80) + "\n");
+                    for (var entry : buildResults.entrySet()) {
+                        writer.write(String.format("%-8s %s%n", entry.getValue(), entry.getKey()));
+                    }
+                    writer.write("=".repeat(80) + "\n");
+                }
+
                 writer.write("\nDetailed logs available in: " + sessionLogDir.toAbsolutePath() + "\n");
             }
             System.out.println("\n📊 Summary report created: " + summaryFile.toAbsolutePath());

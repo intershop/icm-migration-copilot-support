@@ -2,6 +2,7 @@ package com.intershop.mico;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import com.intershop.mico.models.Cartridge;
 import com.intershop.mico.models.Phase;
 import com.intershop.mico.repo.CartridgeRepository;
 import com.intershop.mico.repo.PhaseRepository;
+import com.intershop.mico.util.BuildVerifier;
 import com.intershop.mico.util.CodeMigrator;
 import com.intershop.mico.util.JavaImportScanner;
 import com.intershop.mico.util.MigrationLogger;
@@ -22,6 +24,7 @@ public class Migrator {
     private final PhaseRepository phaseRepository;
     private final Supplier<Agent> agentFactory;
     private final MigrationLogger logger;
+    private final Map<String, BuildVerifier.Status> buildResults = new LinkedHashMap<>();
 
     public Migrator(CartridgeRepository cartridgeRepository, PhaseRepository phaseRepository, Supplier<Agent> agentFactory) {
         this.cartridgeRepository = cartridgeRepository;
@@ -54,8 +57,11 @@ public class Migrator {
                     logger.writeLogHeader(logFile, cartridge, phase);
 
                     boolean isNativePhase = "code_migration".equals(phase.getId());
+                    boolean isBuildVerifyPhase = "build_verify".equals(phase.getId());
 
-                    if (isNativePhase) {
+                    if (isBuildVerifyPhase) {
+                        runBuildVerifyPhase(cartridge, phase, logFile);
+                    } else if (isNativePhase) {
                         runNativePhase(cartridge, phase, logFile);
                     } else {
                         Agent agent = agentFactory.get();
@@ -103,7 +109,7 @@ public class Migrator {
 
         long duration = System.currentTimeMillis() - startTime;
         logger.logToMaster("Migration session completed");
-        logger.createSummaryReport(cartridges.size(), phases.size(), duration);
+        logger.createSummaryReport(cartridges.size(), phases.size(), duration, buildResults);
 
         System.out.println("\n📁 All logs saved to: " + logger.getSessionLogDir().toAbsolutePath());
     }
@@ -200,6 +206,39 @@ public class Migrator {
             logger.logToMaster("  ✗ " + errorMsg);
             logger.logToCartridgeSummary(cartridge, "✗ Phase " + phase.getOrder() + " failed: " + e.getMessage());
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Runs the build verification phase (native): compiles the migrated cartridge
+     * via Gradle and records the outcome. A failed build is recorded as a result
+     * rather than aborting the whole migration session.
+     */
+    private void runBuildVerifyPhase(Cartridge cartridge, Phase phase, Path logFile) {
+        String buildTask = phase.getInputs() != null
+                ? phase.getInputs().getOrDefault("build_task", "compileJava")
+                : "compileJava";
+
+        BuildVerifier verifier = new BuildVerifier(cartridge.getPath(), buildTask);
+        BuildVerifier.Result result = verifier.verify(logFile);
+        buildResults.put(cartridge.getName(), result.status());
+
+        switch (result.status()) {
+            case PASSED -> {
+                System.out.println("    ✓ Build verification passed");
+                logger.logToMaster("  ✓ Build verification passed");
+                logger.logToCartridgeSummary(cartridge, "✓ Phase " + phase.getOrder() + " build verification passed");
+            }
+            case FAILED -> {
+                System.err.println("    ✗ Build verification failed: " + result.detail());
+                logger.logToMaster("  ✗ Build verification failed: " + result.detail());
+                logger.logToCartridgeSummary(cartridge, "✗ Phase " + phase.getOrder() + " build verification failed: " + result.detail());
+            }
+            case SKIPPED -> {
+                System.out.println("    ⚠ Build verification skipped: " + result.detail());
+                logger.logToMaster("  ⚠ Build verification skipped: " + result.detail());
+                logger.logToCartridgeSummary(cartridge, "⚠ Phase " + phase.getOrder() + " build verification skipped: " + result.detail());
+            }
         }
     }
 }
