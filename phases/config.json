@@ -49,5 +49,16 @@
       "cartridge_path" : "path/to/cartridge",
       "cartridge_name" : "name of the cartridge"
     }
+  },
+  {
+    "name": "Build Verification",
+    "instructions": "Phase_6.md",
+    "id" : "build_verify",
+    "order": 6,
+    "inputs" : {
+      "cartridge_path" : "path/to/cartridge",
+      "cartridge_name" : "name of the cartridge",
+      "build_task" : "compileJava"
+    }
   }
 ]
