@@ -93,6 +93,16 @@ Use placeholders in instruction files:
 - `[CARTRIDGE_NAME]` - Replaced with cartridge name
 - `[DEPENDENCIES_LIST]` - Auto-generated list of Java imports
 
+## Two Ways to Run
+
+| Mode              | Best for                                                    | Entry point          |
+|-------------------|-------------------------------------------------------------|----------------------|
+| **CLI (default)** | Unattended batch migration of many cartridges               | This README          |
+| **AI skill**      | Interactive, single-cartridge migration in your IDE / agent | [SKILL.md](SKILL.md) |
+
+Both share one source of truth — the phase instruction files under
+[`phases/instructions/`](phases/instructions).
+
 ## ⚠️ Safety Warning — Read Before Running
 
 MiCo runs AI agents **autonomously and non-interactively** against your
@@ -449,6 +459,7 @@ For issues, questions, or contributions:
 ## Changelog
 
 ### Version 1.1.0
+- Added agent skill `SKILL.md` as alternative way to run MiCo
 - Added Phase 6: Build Verification — compiles each migrated cartridge with
   Gradle and records a per-cartridge PASSED / FAILED / SKIPPED result in `SUMMARY.txt`
   single-cartridge migration in an IDE, reusing the same phase instructions
